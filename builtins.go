@@ -15,6 +15,7 @@ var builtins = map[string]func([]string) int{
 }
 
 func sesh_exit(args []string) int {
+	fmt.Println("Exiting shell")
 	return 0
 }
 

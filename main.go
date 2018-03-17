@@ -13,14 +13,19 @@ import (
 const TOKDELIM = " \t\r\n\a"
 const ERRFORMAT = "sesh: %s\n"
 
-var CWD string
+var (
+	CWD      string
+	HISTSIZE = 25
+	HISTFILE = ".sesh_history"
+	HISTMEM  []string
+)
 
 func main() {
 	/* Importing config */
 
 	sesh_loop()
 
-	os.Exit(0)
+	exit()
 }
 
 func sesh_loop() {
@@ -31,8 +36,9 @@ func sesh_loop() {
 	wdSlice := strings.Split(wd, "/")
 	CWD = wdSlice[len(wdSlice)-1]
 
+	history := make([]string, 0)
+	status, historyCount := 1, 0
 	reader := bufio.NewReader(os.Stdin)
-	status := 1
 
 	for status != 0 {
 		symbol := "\u2713"
@@ -47,7 +53,21 @@ func sesh_loop() {
 		}
 		args := splitIntoTokens(line)
 		status = execute(args)
+		if status == 1 {
+			/* Store line in history */
+			if historyCount == HISTSIZE {
+				history = history[1:]
+			}
+			history = append(history, line)
+			historyCount++
+		}
 	}
+	// Reversing the history slice
+	last := len(history) - 1
+	for i := 0; i < len(history)/2; i++ {
+		history[i], history[last-i] = history[last-i], history[i]
+	}
+	HISTMEM = history
 }
 
 func splitIntoTokens(line string) []string {
@@ -80,4 +100,16 @@ func execute(args []string) int {
 		}
 	}
 	return launch(args)
+}
+
+func exit() {
+	f, err := os.OpenFile(".sesh_history", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+	if err != nil {
+		fmt.Printf(ERRFORMAT, err.Error())
+	}
+	for _, i := range HISTMEM {
+		f.Write([]byte(i))
+		f.Write([]byte("\n"))
+	}
+	os.Exit(0)
 }
