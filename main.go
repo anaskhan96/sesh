@@ -11,6 +11,7 @@ import (
 )
 
 const TOKDELIM = " \t\r\n\a"
+const ERRFORMAT = "sesh: %s\n"
 
 var CWD string
 
@@ -25,7 +26,7 @@ func main() {
 func sesh_loop() {
 	wd, err := os.Getwd()
 	if err != nil {
-		fmt.Printf("sesh: %s\n", err.Error())
+		fmt.Printf(ERRFORMAT, err.Error())
 	}
 	wdSlice := strings.Split(wd, "/")
 	CWD = wdSlice[len(wdSlice)-1]
@@ -34,7 +35,7 @@ func sesh_loop() {
 	status := true
 
 	for status {
-		fmt.Printf("sesh 🔥 %s -> ", CWD)
+		fmt.Printf("sesh 🔥  %s -> ", CWD)
 		line, err := reader.ReadString('\n')
 		line = line[:len(line)-1]
 		if err != nil {
@@ -57,13 +58,21 @@ func launch(args []string) {
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("sesh: %s\n", err.Error())
+		fmt.Printf(ERRFORMAT, err.Error())
 	} else {
 		fmt.Printf(out.String())
 	}
 }
 
 func execute(args []string) bool {
+	if len(args) == 0 {
+		return true
+	}
+	for k, v := range builtins {
+		if args[0] == k {
+			return v(args[1:])
+		}
+	}
 	launch(args)
 	return true
 }
