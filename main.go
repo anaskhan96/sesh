@@ -32,10 +32,14 @@ func sesh_loop() {
 	CWD = wdSlice[len(wdSlice)-1]
 
 	reader := bufio.NewReader(os.Stdin)
-	status := true
+	status := 1
 
-	for status {
-		fmt.Printf("sesh 🔥  %s ∆ ", CWD)
+	for status != 0 {
+		symbol := "\u2713"
+		if status == 2 {
+			symbol = "\u2715"
+		}
+		fmt.Printf("sesh 🔥  %s %s ", CWD, symbol)
 		line, err := reader.ReadString('\n')
 		line = line[:len(line)-1]
 		if err != nil {
@@ -47,11 +51,12 @@ func sesh_loop() {
 }
 
 func splitIntoTokens(line string) []string {
-	/* Need to add proper method to support all kinds of tokenising */
+	/* Need to add proper method to support all kinds of tokenising
+	For now, returning tokens split with any whitespace as a delimiter */
 	return strings.Fields(line)
 }
 
-func launch(args []string) {
+func launch(args []string) int {
 	// Spawning and executing a process
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = nil // making sure the command uses the current process' environment
@@ -59,20 +64,20 @@ func launch(args []string) {
 	cmd.Stdout = &out
 	if err := cmd.Run(); err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
-	} else {
-		fmt.Printf(out.String())
+		return 2
 	}
+	fmt.Printf(out.String())
+	return 1
 }
 
-func execute(args []string) bool {
+func execute(args []string) int {
 	if len(args) == 0 {
-		return true
+		return 1
 	}
 	for k, v := range builtins {
 		if args[0] == k {
 			return v(args[1:])
 		}
 	}
-	launch(args)
-	return true
+	return launch(args)
 }
