@@ -47,7 +47,7 @@ func sesh_loop() {
 
 func splitIntoTokens(line string) []string {
 	/* Need to add proper method to support all kinds of tokenising */
-	return strings.Split(line, TOKDELIM)
+	return strings.Fields(line)
 }
 
 func launch(args []string) {
