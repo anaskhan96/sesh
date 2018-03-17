@@ -35,7 +35,7 @@ func sesh_loop() {
 	status := true
 
 	for status {
-		fmt.Printf("sesh 🔥  %s -> ", CWD)
+		fmt.Printf("sesh 🔥  %s ∆ ", CWD)
 		line, err := reader.ReadString('\n')
 		line = line[:len(line)-1]
 		if err != nil {

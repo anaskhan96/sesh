@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -10,6 +11,7 @@ var builtins = map[string]func([]string) bool{
 	"exit": sesh_exit,
 	"cd":   sesh_cd,
 	"help": sesh_help,
+	"pwd":  sesh_pwd,
 }
 
 func sesh_exit(args []string) bool {
@@ -36,5 +38,16 @@ func sesh_cd(args []string) bool {
 
 func sesh_help(args []string) bool {
 	fmt.Println("sesh -- simple elegant shell by anaskhan96")
+	return true
+}
+
+func sesh_pwd(args []string) bool {
+	if len(args) != 0 {
+		fmt.Printf(ERRFORMAT, "pwd expects 0 args")
+		return true
+	}
+	dir, _ := os.Getwd()
+	absPath, _ := filepath.Abs(dir)
+	fmt.Println(absPath)
 	return true
 }
