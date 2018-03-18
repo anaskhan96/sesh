@@ -7,15 +7,20 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
-const TOKDELIM = " \t\r\n\a"
-const ERRFORMAT = "sesh: %s\n"
+const (
+	TOKDELIM  = " \t\r\n\a"
+	ERRFORMAT = "sesh: %s\n"
+)
 
 var (
-	HISTSIZE = 25
-	HISTFILE = ".sesh_history"
-	HISTMEM  []string
+	HISTSIZE  = 25
+	HISTFILE  string
+	HISTMEM   []string
+	HISTCOUNT int
+	HISTLINE  string
 )
 
 func main() {
@@ -28,7 +33,6 @@ func main() {
 
 func sesh_setup() {
 	os.Clearenv()
-
 	os.Setenv("SHELL", "/bin/sh")
 
 	wd, err := os.Getwd()
@@ -39,12 +43,13 @@ func sesh_setup() {
 	os.Setenv("CWD", wdSlice[len(wdSlice)-1])
 
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin/")
-	/* Import config */
+	os.Setenv("HOME", "/Users/anask")
+	HISTFILE = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".sesh_history")
 }
 
 func sesh_loop() {
 	HISTMEM = initHistory(HISTMEM)
-	status, historyCount := 1, 0
+	status := 1
 	reader := bufio.NewReader(os.Stdin)
 	//go listenForKeyPress()
 
@@ -56,25 +61,23 @@ func sesh_loop() {
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		line, _ := reader.ReadString('\n')
 		line = line[:len(line)-1]
-		args := splitIntoTokens(line)
+		HISTLINE = line
+		args := parseLine(line)
 		status = execute(args)
 		if status == 1 {
 			/* Store line in history */
-			if historyCount == HISTSIZE {
+			if HISTCOUNT == HISTSIZE {
 				HISTMEM = HISTMEM[1:]
+				HISTCOUNT = 0
 			}
-			HISTMEM = append(HISTMEM, line)
-			historyCount++
+			HISTMEM = append([]string{HISTLINE}, HISTMEM...)
+			HISTCOUNT++
 		}
-	}
-	// Reversing the history slice
-	last := len(HISTMEM) - 1
-	for i := 0; i < len(HISTMEM)/2; i++ {
-		HISTMEM[i], HISTMEM[last-i] = HISTMEM[last-i], HISTMEM[i]
 	}
 }
 
-func splitIntoTokens(line string) []string {
+func parseLine(line string) []string {
+	line = strings.Replace(line, "~", os.Getenv("HOME"), -1)
 	/* Need to add proper method to support all kinds of tokenising
 	For now, returning tokens split with any whitespace as a delimiter */
 	return strings.Fields(line)
@@ -86,11 +89,13 @@ func launch(args []string) int {
 	cmd.Env = nil // making sure the command uses the current process' environment
 	var out bytes.Buffer
 	cmd.Stdout = &out
+	timestamp := time.Now().String()
 	if err := cmd.Run(); err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
 		return 2
 	}
 	fmt.Printf(out.String())
+	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
 	return 1
 }
 
@@ -100,6 +105,8 @@ func execute(args []string) int {
 	}
 	for k, v := range builtins {
 		if args[0] == k {
+			timestamp := time.Now().String()
+			HISTLINE = fmt.Sprintf("%d::%s::%s", os.Getpid(), timestamp, HISTLINE)
 			return v(args[1:])
 		}
 	}
@@ -113,13 +120,8 @@ func initHistory(history []string) []string {
 		/* Read file and store each line in history slice */
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
-			text := scanner.Text()
-			history = append(history, text)
-		}
-		// Reversing the history slice
-		last := len(history) - 1
-		for i := 0; i < len(history)/2; i++ {
-			history[i], history[last-i] = history[last-i], history[i]
+			history = append(history, scanner.Text())
+			HISTCOUNT++
 		}
 	}
 	return history
