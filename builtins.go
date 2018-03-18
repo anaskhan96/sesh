@@ -12,6 +12,7 @@ var builtins = map[string]func([]string) int{
 	"cd":   sesh_cd,
 	"help": sesh_help,
 	"pwd":  sesh_pwd,
+	"echo": sesh_echo,
 }
 
 func sesh_exit(args []string) int {
@@ -50,5 +51,13 @@ func sesh_pwd(args []string) int {
 	dir, _ := os.Getwd()
 	absPath, _ := filepath.Abs(dir)
 	fmt.Println(absPath)
+	return 1
+}
+
+func sesh_echo(args []string) int {
+	for _, i := range args {
+		fmt.Printf("%s ", i)
+	}
+	fmt.Printf("\n")
 	return 1
 }
