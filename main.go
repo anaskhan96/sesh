@@ -13,30 +13,37 @@ const TOKDELIM = " \t\r\n\a"
 const ERRFORMAT = "sesh: %s\n"
 
 var (
-	CWD      string
 	HISTSIZE = 25
 	HISTFILE = ".sesh_history"
 	HISTMEM  []string
 )
 
 func main() {
-	/* Importing config */
+	sesh_setup()
 
 	sesh_loop()
 
 	exit()
 }
 
-func sesh_loop() {
+func sesh_setup() {
+	os.Clearenv()
+
+	os.Setenv("SHELL", "/bin/sh")
+
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
 	}
 	wdSlice := strings.Split(wd, "/")
-	CWD = wdSlice[len(wdSlice)-1]
+	os.Setenv("CWD", wdSlice[len(wdSlice)-1])
 
-	history := make([]string, 0)
-	history = initHistory(history)
+	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin/")
+	/* Import config */
+}
+
+func sesh_loop() {
+	HISTMEM = initHistory(HISTMEM)
 	status, historyCount := 1, 0
 	reader := bufio.NewReader(os.Stdin)
 	//go listenForKeyPress()
@@ -46,7 +53,7 @@ func sesh_loop() {
 		if status == 2 {
 			symbol = "\u2715"
 		}
-		fmt.Printf("sesh 🔥  %s %s ", CWD, symbol)
+		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		line, _ := reader.ReadString('\n')
 		line = line[:len(line)-1]
 		args := splitIntoTokens(line)
@@ -54,18 +61,17 @@ func sesh_loop() {
 		if status == 1 {
 			/* Store line in history */
 			if historyCount == HISTSIZE {
-				history = history[1:]
+				HISTMEM = HISTMEM[1:]
 			}
-			history = append(history, line)
+			HISTMEM = append(HISTMEM, line)
 			historyCount++
 		}
 	}
 	// Reversing the history slice
-	last := len(history) - 1
-	for i := 0; i < len(history)/2; i++ {
-		history[i], history[last-i] = history[last-i], history[i]
+	last := len(HISTMEM) - 1
+	for i := 0; i < len(HISTMEM)/2; i++ {
+		HISTMEM[i], HISTMEM[last-i] = HISTMEM[last-i], HISTMEM[i]
 	}
-	HISTMEM = history
 }
 
 func splitIntoTokens(line string) []string {

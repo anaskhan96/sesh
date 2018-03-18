@@ -2,17 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var builtins = map[string]func([]string) int{
 	"exit": sesh_exit,
-	"cd":   sesh_cd,
+	//"cd":   sesh_cd,
 	"help": sesh_help,
-	"pwd":  sesh_pwd,
-	"echo": sesh_echo,
+	//"pwd":  sesh_pwd,
+	//"echo": sesh_echo,
+	"history": sesh_history,
 }
 
 func sesh_exit(args []string) int {
@@ -20,6 +18,16 @@ func sesh_exit(args []string) int {
 	return 0
 }
 
+func sesh_help(args []string) int {
+	fmt.Println("sesh -- simple elegant shell by anaskhan96")
+	return 1
+}
+
+func sesh_history(args []string) int {
+	return 2
+}
+
+/* Commenting extra builtins for now
 func sesh_cd(args []string) int {
 	if len(args) == 0 {
 		fmt.Printf(ERRFORMAT, "Please provide a path to change directory to")
@@ -35,11 +43,6 @@ func sesh_cd(args []string) int {
 		wdSlice := strings.Split(wd, "/")
 		CWD = wdSlice[len(wdSlice)-1]
 	}
-	return 1
-}
-
-func sesh_help(args []string) int {
-	fmt.Println("sesh -- simple elegant shell by anaskhan96")
 	return 1
 }
 
@@ -60,4 +63,4 @@ func sesh_echo(args []string) int {
 	}
 	fmt.Printf("\n")
 	return 1
-}
+}*/
