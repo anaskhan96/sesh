@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"strings"
 	"time"
 )
@@ -43,8 +45,16 @@ func sesh_setup() {
 	os.Setenv("CWD", wdSlice[len(wdSlice)-1])
 
 	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin/")
-	os.Setenv("HOME", "/Users/anask")
+	currUser, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.Setenv("USER", currUser.Username)
+	os.Setenv("HOME", currUser.HomeDir)
 	HISTFILE = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".sesh_history")
+
+	/* Importing config */
+	//sesh_config()
 }
 
 func sesh_loop() {
