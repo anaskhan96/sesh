@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -23,6 +24,8 @@ var (
 	HISTMEM   []string
 	HISTCOUNT int
 	HISTLINE  string
+	CONFIG    string
+	aliases   map[string]string
 )
 
 func main() {
@@ -54,7 +57,21 @@ func sesh_setup() {
 	HISTFILE = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".sesh_history")
 
 	/* Importing config */
-	//sesh_config()
+	sesh_config()
+}
+
+func sesh_config() {
+	CONFIG = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".seshrc")
+	aliases = make(map[string]string)
+	aliases["~"] = os.Getenv("HOME")
+	if _, err := os.Stat(CONFIG); err == nil {
+		f, _ := os.OpenFile(CONFIG, os.O_RDONLY, 0666)
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			parseLine(scanner.Text())
+		}
+	}
 }
 
 func sesh_loop() {
@@ -72,7 +89,10 @@ func sesh_loop() {
 		line, _ := reader.ReadString('\n')
 		line = line[:len(line)-1]
 		HISTLINE = line
-		args := parseLine(line)
+		args, err := parseLine(line)
+		if err != nil {
+			fmt.Printf(ERRFORMAT, err.Error())
+		}
 		status = execute(args)
 		if status == 1 {
 			/* Store line in history */
@@ -86,11 +106,26 @@ func sesh_loop() {
 	}
 }
 
-func parseLine(line string) []string {
-	line = strings.Replace(line, "~", os.Getenv("HOME"), -1)
-	/* Need to add proper method to support all kinds of tokenising
-	For now, returning tokens split with any whitespace as a delimiter */
-	return strings.Fields(line)
+func parseLine(line string) ([]string, error) {
+	/* Need to include whitespaces as single token inside double quotes */
+	args := strings.Fields(line)
+	if args[0] == "alias" {
+		for _, i := range args[1:] {
+			aliasArgs := strings.Split(i, "=")
+			if len(aliasArgs) != 2 {
+				return nil, errors.New("Wrong alias key and value format in config")
+			}
+			aliases[aliasArgs[0]] = aliasArgs[1]
+		}
+		return args, nil
+	}
+	// replace if an alias
+	for i, arg := range args {
+		if val, ok := aliases[arg]; ok {
+			args[i] = val
+		}
+	}
+	return args, nil
 }
 
 func launch(args []string) int {
@@ -135,6 +170,15 @@ func initHistory(history []string) []string {
 		}
 	}
 	return history
+}
+
+func aliasing(line string) string {
+	for key, value := range aliases {
+		if strings.Contains(line, key) {
+			line = strings.Replace(line, key, value, -1)
+		}
+	}
+	return line
 }
 
 func exit() {
