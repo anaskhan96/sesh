@@ -119,10 +119,24 @@ func parseLine(line string) ([]string, error) {
 		}
 		return args, nil
 	}
+	if args[0] == "export" {
+		exportArgs := strings.Split(args[1], "=")
+		if len(exportArgs) != 2 {
+			return nil, errors.New("Wrong export format in config")
+		}
+		os.Setenv(exportArgs[0], exportArgs[1])
+		return args, nil
+	}
 	// replace if an alias
 	for i, arg := range args {
 		if val, ok := aliases[arg]; ok {
 			args[i] = val
+		}
+	}
+	// replace if an environment variable
+	for i, arg := range args {
+		if arg[0] == '$' {
+			args[i] = os.Getenv(arg[1:])
 		}
 	}
 	return args, nil
