@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -88,12 +87,11 @@ func sesh_loop() {
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		line, _ := reader.ReadString('\n')
 		line = line[:len(line)-1]
-		HISTLINE = line
-		args, err := parseLine(line)
-		if err != nil {
-			fmt.Printf(ERRFORMAT, err.Error())
+		HISTLINE, status = line, 1
+		args, ok := parseLine(line)
+		if ok {
+			status = execute(args)
 		}
-		status = execute(args)
 		if status == 1 {
 			/* Store line in history */
 			if HISTCOUNT == HISTSIZE {
@@ -106,26 +104,26 @@ func sesh_loop() {
 	}
 }
 
-func parseLine(line string) ([]string, error) {
+func parseLine(line string) ([]string, bool) {
 	/* Need to include whitespaces as single token inside double quotes */
 	args := strings.Fields(line)
 	if args[0] == "alias" {
 		for _, i := range args[1:] {
 			aliasArgs := strings.Split(i, "=")
 			if len(aliasArgs) != 2 {
-				return nil, errors.New("Wrong alias key and value format in config")
+				log.Fatalf(ERRFORMAT, "wrong format of alias")
 			}
 			aliases[aliasArgs[0]] = aliasArgs[1]
 		}
-		return args, nil
+		return args, false
 	}
 	if args[0] == "export" {
 		exportArgs := strings.Split(args[1], "=")
 		if len(exportArgs) != 2 {
-			return nil, errors.New("Wrong export format in config")
+			log.Fatalf(ERRFORMAT, "wrong format of export")
 		}
 		os.Setenv(exportArgs[0], exportArgs[1])
-		return args, nil
+		return args, false
 	}
 	// replace if an alias
 	for i, arg := range args {
@@ -139,7 +137,7 @@ func parseLine(line string) ([]string, error) {
 			args[i] = os.Getenv(arg[1:])
 		}
 	}
-	return args, nil
+	return args, true
 }
 
 func launch(args []string) int {
