@@ -63,6 +63,7 @@ func sesh_config() {
 	CONFIG = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".seshrc")
 	aliases = make(map[string]string)
 	aliases["~"] = os.Getenv("HOME")
+	aliases["editor"] = fmt.Sprintf("%s/%s", os.Getenv("HOME"), "go/src/github.com/anaskhan96/sesh/editor/main") // TODO: make this better
 	if _, err := os.Stat(CONFIG); err == nil {
 		f, _ := os.OpenFile(CONFIG, os.O_RDONLY, 0666)
 		defer f.Close()
