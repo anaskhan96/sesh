@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -125,6 +126,17 @@ func parseLine(line string) ([]string, bool) {
 			args[i] = os.Getenv(arg[1:])
 		}
 	}
+	// wildcard support (not really efficient)
+	wildcardArgs := make([]string, 0, 5)
+	for _, arg := range args {
+		if strings.Contains(arg, "*") {
+			matches, _ := filepath.Glob(arg)
+			wildcardArgs = append(wildcardArgs, matches...)
+		} else {
+			wildcardArgs = append(wildcardArgs, arg)
+		}
+	}
+	args = wildcardArgs
 	return args, true
 }
 
