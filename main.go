@@ -129,7 +129,7 @@ func parseLine(line string) ([]string, bool) {
 	// wildcard support (not really efficient)
 	wildcardArgs := make([]string, 0, 5)
 	for _, arg := range args {
-		if strings.Contains(arg, "*") {
+		if strings.Contains(arg, "*") || strings.Contains(arg, "?") {
 			matches, _ := filepath.Glob(arg)
 			wildcardArgs = append(wildcardArgs, matches...)
 		} else {
