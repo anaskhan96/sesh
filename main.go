@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -94,8 +95,12 @@ func sesh_loop() {
 }
 
 func parseLine(line string) ([]string, bool) {
-	/* Need to include whitespaces as single token inside double quotes */
-	args := strings.Fields(line)
+	args := regexp.MustCompile("'(.+)'|\"(.+)\"|\\S+").FindAllString(line, -1)
+	for i, arg := range args {
+		if (arg[0] == '"' && arg[len(arg)-1] == '"') || (arg[0] == '\'' && arg[len(arg)-1] == '\'') {
+			args[i] = arg[1 : len(arg)-1]
+		}
+	}
 	if args[0] == "alias" {
 		for _, i := range args[1:] {
 			aliasArgs := strings.Split(i, "=")
