@@ -146,13 +146,13 @@ func launch(args []string) int {
 	cmd.Env = nil // making sure the command uses the current process' environment
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	timestamp := time.Now().Unix()
+	timestamp := time.Now().String()
 	if err := cmd.Run(); err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
 		return 2
 	}
 	fmt.Printf(out.String())
-	HISTLINE = fmt.Sprintf("%d::%d::%s", cmd.Process.Pid, timestamp, HISTLINE)
+	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
 	return 1
 }
 
@@ -162,8 +162,8 @@ func execute(args []string) int {
 	}
 	for k, v := range builtins {
 		if args[0] == k {
-			timestamp := time.Now().Unix()
-			HISTLINE = fmt.Sprintf("%d::%d::%s", os.Getpid(), timestamp, HISTLINE)
+			timestamp := time.Now().String()
+			HISTLINE = fmt.Sprintf("%d::%s::%s", os.Getpid(), timestamp, HISTLINE)
 			return v(args[1:])
 		}
 	}
