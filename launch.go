@@ -9,26 +9,50 @@ import (
 
 func launch(args []string) int {
 	commands := make([]*exec.Cmd, 0, 5)
-	start := 0
+	start, cmdInEnd := 0, true
 	for i, arg := range args {
 		if arg == "|" {
 			cmd := exec.Command(args[start], args[start+1:i]...)
 			commands = append(commands, cmd)
 			start = i + 1
 		}
-		if i == len(args)-1 {
-			if len(commands) == 0 {
-				return launchSingleCommand(args)
-			}
-			cmd := exec.Command(args[start], args[start+1:]...)
+		if arg == ">" {
+			cmd := exec.Command(args[start], args[start+1:i]...)
+			f, _ := os.OpenFile(args[i+1], os.O_WRONLY|os.O_CREATE, 0666)
+			cmd.Stdout = f
 			commands = append(commands, cmd)
+			cmdInEnd = false
+		}
+		if arg == "<" {
+			f, _ := os.Open(args[i+1])
+			if len(commands) > 0 {
+				commands[0].Stdin = f
+			} else {
+				cmd := exec.Command(args[start], args[start+1:i]...)
+				cmd.Stdin = f
+				commands = append(commands, cmd)
+			}
+			cmdInEnd = false
+		}
+		if i == len(args)-1 {
+			if cmdInEnd {
+				if len(commands) == 0 {
+					return launchSimpleCommand(args)
+				}
+				cmd := exec.Command(args[start], args[start+1:]...)
+				commands = append(commands, cmd)
+			}
 		}
 	}
 	for i := range commands {
 		if i != len(commands)-1 {
-			commands[i+1].Stdin, _ = commands[i].StdoutPipe()
+			if commands[i+1].Stdin == nil {
+				commands[i+1].Stdin, _ = commands[i].StdoutPipe()
+			}
 		} else {
-			commands[i].Stdout = os.Stdout
+			if commands[i].Stdout == nil {
+				commands[i].Stdout = os.Stdout
+			}
 		}
 	}
 	for i := len(commands) - 1; i > 0; i-- {
@@ -46,7 +70,7 @@ func launch(args []string) int {
 	return 1
 }
 
-func launchSingleCommand(args []string) int {
+func launchSimpleCommand(args []string) int {
 	// Spawning and executing a process
 	cmd := exec.Command(args[0], args[1:]...)
 	// Setting stdin, stdout, and stderr
