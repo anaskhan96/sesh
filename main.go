@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -145,7 +144,7 @@ func parseLine(line string) ([]string, bool) {
 	return args, true
 }
 
-func launch(args []string) int {
+/*func launch(args []string) int {
 	// Spawning and executing a process
 	cmd := exec.Command(args[0], args[1:]...)
 	// Setting stdin, stdout, and stderr
@@ -160,7 +159,7 @@ func launch(args []string) int {
 	}
 	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
 	return 1
-}
+}*/
 
 func execute(args []string) int {
 	if len(args) == 0 {
