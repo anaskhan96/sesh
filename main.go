@@ -2,12 +2,10 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"strings"
 	"time"
 )
@@ -36,9 +34,6 @@ func main() {
 }
 
 func sesh_setup() {
-	os.Clearenv()
-	os.Setenv("SHELL", "/bin/sh")
-
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
@@ -46,13 +41,6 @@ func sesh_setup() {
 	wdSlice := strings.Split(wd, "/")
 	os.Setenv("CWD", wdSlice[len(wdSlice)-1])
 
-	os.Setenv("PATH", "/bin:/usr/bin:/usr/local/bin/")
-	currUser, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	os.Setenv("USER", currUser.Username)
-	os.Setenv("HOME", currUser.HomeDir)
 	HISTFILE = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".sesh_history")
 
 	/* Importing config */
@@ -143,15 +131,16 @@ func parseLine(line string) ([]string, bool) {
 func launch(args []string) int {
 	// Spawning and executing a process
 	cmd := exec.Command(args[0], args[1:]...)
+	// Setting stdin, stdout, and stderr
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Env = nil // making sure the command uses the current process' environment
-	var out bytes.Buffer
-	cmd.Stdout = &out
 	timestamp := time.Now().String()
 	if err := cmd.Run(); err != nil {
 		fmt.Printf(ERRFORMAT, err.Error())
 		return 2
 	}
-	fmt.Printf(out.String())
 	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
 	return 1
 }
