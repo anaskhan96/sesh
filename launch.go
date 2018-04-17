@@ -34,10 +34,15 @@ func launch(args []string) int {
 	for i := len(commands) - 1; i > 0; i-- {
 		commands[i].Start()
 	}
-	commands[0].Run()
+	timestamp := time.Now().String()
+	if err := commands[0].Run(); err != nil {
+		fmt.Printf(ERRFORMAT, err.Error())
+		return 2
+	}
 	for i := range commands[1:] {
 		commands[i].Wait()
 	}
+	HISTLINE = fmt.Sprintf("%d::%s::%s", commands[0].Process.Pid, timestamp, HISTLINE)
 	return 1
 }
 
