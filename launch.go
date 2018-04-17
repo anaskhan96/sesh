@@ -12,7 +12,6 @@ func launch(args []string) int {
 	start := 0
 	for i, arg := range args {
 		if arg == "|" {
-			fmt.Println(args[start])
 			cmd := exec.Command(args[start], args[start+1:i]...)
 			commands = append(commands, cmd)
 			start = i + 1
@@ -21,10 +20,23 @@ func launch(args []string) int {
 			if len(commands) == 0 {
 				return launchSingleCommand(args)
 			}
-			fmt.Println(args[start])
 			cmd := exec.Command(args[start], args[start+1:]...)
 			commands = append(commands, cmd)
 		}
+	}
+	for i := range commands {
+		if i != len(commands)-1 {
+			commands[i+1].Stdin, _ = commands[i].StdoutPipe()
+		} else {
+			commands[i].Stdout = os.Stdout
+		}
+	}
+	for i := len(commands) - 1; i > 0; i-- {
+		commands[i].Start()
+	}
+	commands[0].Run()
+	for i := range commands[1:] {
+		commands[i].Wait()
 	}
 	return 1
 }
