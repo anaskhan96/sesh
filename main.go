@@ -185,15 +185,6 @@ func initHistory(history []string) []string {
 	return history
 }
 
-func aliasing(line string) string {
-	for key, value := range aliases {
-		if strings.Contains(line, key) {
-			line = strings.Replace(line, key, value, -1)
-		}
-	}
-	return line
-}
-
 func exit() {
 	f, err := os.OpenFile(HISTFILE, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
