@@ -1,5 +1,11 @@
 package main
 
+/*
+extern void disableRawMode();
+extern void enableRawMode();
+*/
+import "C"
+
 import (
 	"bufio"
 	"fmt"
@@ -66,7 +72,7 @@ func sesh_loop() {
 	HISTMEM = initHistory(HISTMEM)
 	status := 1
 	reader := bufio.NewReader(os.Stdin)
-	//go listenForKeyPress()
+	C.enableRawMode()
 
 	for status != 0 {
 		symbol := "\u2713"
@@ -74,12 +80,30 @@ func sesh_loop() {
 			symbol = "\u2715"
 		}
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
-		line, _ := reader.ReadString('\n')
-		if line == "\n" {
+		//line, _ := reader.ReadString('\n')
+		line, discard := "", false
+		for {
+			c, _ := reader.ReadByte()
+			// ctrl-c was pressed
+			if c == 3 {
+				fmt.Println("^C")
+				discard = true
+				break
+			}
+			// the enter key was pressed
+			if c == 13 {
+				fmt.Println()
+				break
+			} else {
+				fmt.Printf("%c", c)
+				line += string(c)
+			}
+		}
+		if line == "" || discard {
 			status = 1
 			continue
 		}
-		line = line[:len(line)-1]
+		//line = line[:len(line)-1]
 		HISTLINE, status = line, 1
 		args, ok := parseLine(line)
 		if ok {
