@@ -72,6 +72,8 @@ func sesh_loop() {
 	HISTMEM = initHistory(HISTMEM)
 	status := 1
 	reader := bufio.NewReader(os.Stdin)
+
+	// enabling raw mode for terminal
 	C.enableRawMode()
 
 	for status != 0 {
@@ -81,9 +83,39 @@ func sesh_loop() {
 		}
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		//line, _ := reader.ReadString('\n')
-		line, discard := "", false
+		line, discard, cursorPos := "", false, 0
 		for {
 			c, _ := reader.ReadByte()
+			if c == 27 {
+				c1, _ := reader.ReadByte()
+				if c1 == '[' {
+					c2, _ := reader.ReadByte()
+					switch c2 {
+					case 'A':
+						fmt.Printf("%s", "up")
+					case 'B':
+						fmt.Printf("%s", "down")
+					case 'C':
+						if cursorPos < len(line) {
+							fmt.Printf("\033[C")
+							cursorPos++
+						}
+					case 'D':
+						if cursorPos > 0 {
+							fmt.Printf("\033[D")
+							cursorPos--
+						}
+					}
+				}
+				continue
+			}
+			// backspace was pressed
+			if c == 127 {
+				fmt.Printf("\b\033[J")
+				line = line[:len(line)-1]
+				cursorPos--
+				continue
+			}
 			// ctrl-c was pressed
 			if c == 3 {
 				fmt.Println("^C")
@@ -98,10 +130,10 @@ func sesh_loop() {
 			if c == 13 {
 				fmt.Println()
 				break
-			} else {
-				fmt.Printf("%c", c)
-				line += string(c)
 			}
+			fmt.Printf("%c", c)
+			line += string(c)
+			cursorPos = len(line)
 		}
 		if line == "" || discard {
 			status = 1
@@ -231,5 +263,6 @@ func exit() {
 		f.Write([]byte(i))
 		f.Write([]byte("\n"))
 	}
+	C.disableRawMode()
 	os.Exit(0)
 }
