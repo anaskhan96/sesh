@@ -8,7 +8,10 @@ import (
 )
 
 func launch(args []string) int {
-	commands := make([]*exec.Cmd, 0, 5)
+	commands, isBackground := make([]*exec.Cmd, 0, 5), false
+	if args[len(args)-1] == "&" {
+		isBackground = true
+	}
 	start, cmdInEnd := 0, true
 	for i, arg := range args {
 		if arg == "|" {
@@ -37,7 +40,7 @@ func launch(args []string) int {
 		if i == len(args)-1 {
 			if cmdInEnd {
 				if len(commands) == 0 {
-					return launchSimpleCommand(args)
+					return launchSimpleCommand(args, isBackground)
 				}
 				cmd := exec.Command(args[start], args[start+1:]...)
 				commands = append(commands, cmd)
@@ -59,9 +62,13 @@ func launch(args []string) int {
 		commands[i].Start()
 	}
 	timestamp := time.Now().String()
-	if err := commands[0].Run(); err != nil {
-		fmt.Printf(ERRFORMAT, err.Error())
-		return 2
+	if !isBackground {
+		if err := commands[0].Run(); err != nil {
+			fmt.Printf(ERRFORMAT, err.Error())
+			return 2
+		}
+	} else {
+		commands[0].Start()
 	}
 	for i := range commands[1:] {
 		commands[i].Wait()
@@ -70,7 +77,7 @@ func launch(args []string) int {
 	return 1
 }
 
-func launchSimpleCommand(args []string) int {
+func launchSimpleCommand(args []string, isBackground bool) int {
 	// Spawning and executing a process
 	cmd := exec.Command(args[0], args[1:]...)
 	// Setting stdin, stdout, and stderr
@@ -79,9 +86,13 @@ func launchSimpleCommand(args []string) int {
 	cmd.Stderr = os.Stderr
 	cmd.Env = nil // making sure the command uses the current process' environment
 	timestamp := time.Now().String()
-	if err := cmd.Run(); err != nil {
-		fmt.Printf(ERRFORMAT, err.Error())
-		return 2
+	if !isBackground {
+		if err := cmd.Run(); err != nil {
+			fmt.Printf(ERRFORMAT, err.Error())
+			return 2
+		}
+	} else {
+		cmd.Start()
 	}
 	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
 	return 1
