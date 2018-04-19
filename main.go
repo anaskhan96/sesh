@@ -111,9 +111,11 @@ func sesh_loop() {
 			}
 			// backspace was pressed
 			if c == 127 {
-				fmt.Printf("\b\033[J")
-				line = line[:len(line)-1]
-				cursorPos--
+				if cursorPos > 0 {
+					fmt.Printf("\b\033[J")
+					line = line[:len(line)-1]
+					cursorPos--
+				}
 				continue
 			}
 			// ctrl-c was pressed
