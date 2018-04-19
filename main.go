@@ -96,16 +96,18 @@ func sesh_loop() {
 					c2, _ := reader.ReadByte()
 					switch c2 {
 					case 'A':
-						for cursorPos > 0 {
-							fmt.Printf("\b\033[J")
-							cursorPos--
+						if len(HISTMEM) != 0 && histCounter < len(HISTMEM) {
+							for cursorPos > 0 {
+								fmt.Printf("\b\033[J")
+								cursorPos--
+							}
+							line = strings.Split(HISTMEM[histCounter], "::")[2]
+							fmt.Printf(line)
+							cursorPos = len(line)
+							histCounter++
 						}
-						line = strings.Split(HISTMEM[histCounter], "::")[2]
-						fmt.Printf(line)
-						cursorPos = len(line)
-						histCounter++
 					case 'B':
-						if histCounter > 0 {
+						if len(HISTMEM) != 0 && histCounter > 0 {
 							for cursorPos > 0 {
 								fmt.Printf("\b\033[J")
 								cursorPos--
@@ -115,13 +117,11 @@ func sesh_loop() {
 							fmt.Printf(line)
 							cursorPos = len(line)
 						}
-					// TODO
 					case 'C':
 						if cursorPos < len(line) {
 							fmt.Printf("\033[C")
 							cursorPos++
 						}
-					// TODO
 					case 'D':
 						if cursorPos > 0 {
 							fmt.Printf("\033[D")
@@ -134,9 +134,20 @@ func sesh_loop() {
 			// backspace was pressed
 			if c == 127 {
 				if cursorPos > 0 {
-					fmt.Printf("\b\033[J")
-					line = line[:len(line)-1]
-					cursorPos--
+					if cursorPos != len(line) {
+						temp, oldLength := line[cursorPos:], len(line)
+						fmt.Printf("\b\033[K%s", temp)
+						for oldLength != cursorPos {
+							fmt.Printf("\033[D")
+							oldLength--
+						}
+						line = line[:cursorPos-1] + temp
+						cursorPos--
+					} else {
+						fmt.Print("\b\033[K")
+						line = line[:len(line)-1]
+						cursorPos--
+					}
 				}
 				continue
 			}
@@ -155,9 +166,20 @@ func sesh_loop() {
 				fmt.Println()
 				break
 			}
-			fmt.Printf("%c", c)
-			line += string(c)
-			cursorPos = len(line)
+			if cursorPos == len(line) {
+				fmt.Printf("%c", c)
+				line += string(c)
+				cursorPos = len(line)
+			} else {
+				temp, oldLength := line[cursorPos:], len(line)
+				fmt.Printf("\033[K%c%s", c, temp)
+				for oldLength != cursorPos {
+					fmt.Printf("\033[D")
+					oldLength--
+				}
+				line = line[:cursorPos] + string(c) + temp
+				cursorPos++
+			}
 			if c == '\\' {
 				shellEditor = true
 			}
