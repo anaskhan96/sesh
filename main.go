@@ -80,9 +80,16 @@ func sesh_loop() {
 		}
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		//line, _ := reader.ReadString('\n')
-		line, discard, cursorPos, histCounter := "", false, 0, 0
+		line, discard, cursorPos, histCounter, shellEditor := "", false, 0, 0, false
 		for {
 			c, _ := reader.ReadByte()
+			if shellEditor && c == 13 {
+				line = line[:len(line)-1]
+				fmt.Println()
+				shellEditor = false
+				continue
+			}
+			shellEditor = false
 			if c == 27 {
 				c1, _ := reader.ReadByte()
 				if c1 == '[' {
@@ -151,6 +158,9 @@ func sesh_loop() {
 			fmt.Printf("%c", c)
 			line += string(c)
 			cursorPos = len(line)
+			if c == '\\' {
+				shellEditor = true
+			}
 		}
 		C.disableRawMode()
 		if line == "" || discard {
