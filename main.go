@@ -73,17 +73,15 @@ func sesh_loop() {
 	status := 1
 	reader := bufio.NewReader(os.Stdin)
 
-	// enabling raw mode for terminal
-	C.enableRawMode()
-
 	for status != 0 {
+		C.enableRawMode()
 		symbol := "\u2713"
 		if status == 2 {
 			symbol = "\u2715"
 		}
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		//line, _ := reader.ReadString('\n')
-		line, discard, cursorPos := "", false, 0
+		line, discard, cursorPos, histCounter := "", false, 0, 0
 		for {
 			c, _ := reader.ReadByte()
 			if c == 27 {
@@ -92,9 +90,25 @@ func sesh_loop() {
 					c2, _ := reader.ReadByte()
 					switch c2 {
 					case 'A':
-						fmt.Printf("%s", "up")
+						for cursorPos > 0 {
+							fmt.Printf("\b\033[J")
+							cursorPos--
+						}
+						line = strings.Split(HISTMEM[histCounter], "::")[2]
+						fmt.Printf(line)
+						cursorPos = len(line)
+						histCounter++
 					case 'B':
-						fmt.Printf("%s", "down")
+						if histCounter > 0 {
+							for cursorPos > 0 {
+								fmt.Printf("\b\033[J")
+								cursorPos--
+							}
+							histCounter--
+							line = strings.Split(HISTMEM[histCounter], "::")[2]
+							fmt.Printf(line)
+							cursorPos = len(line)
+						}
 					case 'C':
 						if cursorPos < len(line) {
 							fmt.Printf("\033[C")
@@ -141,7 +155,7 @@ func sesh_loop() {
 			status = 1
 			continue
 		}
-		//line = line[:len(line)-1]
+		C.disableRawMode()
 		HISTLINE, status = line, 1
 		args, ok := parseLine(line)
 		if ok {
@@ -265,6 +279,5 @@ func exit() {
 		f.Write([]byte(i))
 		f.Write([]byte("\n"))
 	}
-	C.disableRawMode()
 	os.Exit(0)
 }
