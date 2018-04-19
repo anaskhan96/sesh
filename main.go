@@ -75,6 +75,10 @@ func sesh_loop() {
 		}
 		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
 		line, _ := reader.ReadString('\n')
+		if line == "\n" {
+			status = 1
+			continue
+		}
 		line = line[:len(line)-1]
 		HISTLINE, status = line, 1
 		args, ok := parseLine(line)
