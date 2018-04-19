@@ -57,7 +57,6 @@ func sesh_setup() {
 func sesh_config() {
 	CONFIG = fmt.Sprintf("%s/%s", os.Getenv("HOME"), ".seshrc")
 	aliases = make(map[string]string)
-	aliases["~"] = os.Getenv("HOME")
 	if _, err := os.Stat(CONFIG); err == nil {
 		f, _ := os.OpenFile(CONFIG, os.O_RDONLY, 0666)
 		defer f.Close()
@@ -109,11 +108,13 @@ func sesh_loop() {
 							fmt.Printf(line)
 							cursorPos = len(line)
 						}
+					// TODO
 					case 'C':
 						if cursorPos < len(line) {
 							fmt.Printf("\033[C")
 							cursorPos++
 						}
+					// TODO
 					case 'D':
 						if cursorPos > 0 {
 							fmt.Printf("\033[D")
@@ -151,12 +152,13 @@ func sesh_loop() {
 			line += string(c)
 			cursorPos = len(line)
 		}
+		C.disableRawMode()
 		if line == "" || discard {
 			status = 1
 			continue
 		}
-		C.disableRawMode()
 		HISTLINE, status = line, 1
+		line = strings.Replace(line, "~", os.Getenv("HOME"), -1)
 		args, ok := parseLine(line)
 		if ok {
 			status = execute(args)
