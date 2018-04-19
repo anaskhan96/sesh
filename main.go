@@ -90,6 +90,10 @@ func sesh_loop() {
 				discard = true
 				break
 			}
+			// ctrl-d was pressed
+			if c == 4 {
+				exit()
+			}
 			// the enter key was pressed
 			if c == 13 {
 				fmt.Println()
