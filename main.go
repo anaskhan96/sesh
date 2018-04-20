@@ -87,6 +87,7 @@ func sesh_loop() {
 				line = line[:len(line)-1]
 				fmt.Println()
 				shellEditor = false
+				cursorPos = len(line)
 				continue
 			}
 			shellEditor = false
