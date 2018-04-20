@@ -167,6 +167,11 @@ func sesh_loop() {
 				fmt.Println()
 				break
 			}
+			// tab was pressed
+			if c == 9 {
+				// TODO
+				continue
+			}
 			if cursorPos == len(line) {
 				fmt.Printf("%c", c)
 				line += string(c)
