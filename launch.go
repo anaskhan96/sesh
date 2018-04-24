@@ -19,9 +19,14 @@ func launch(args []string) int {
 			commands = append(commands, cmd)
 			start = i + 1
 		}
-		if arg == ">" {
+		if arg == ">" || arg == ">>" {
 			cmd := exec.Command(args[start], args[start+1:i]...)
-			f, _ := os.OpenFile(args[i+1], os.O_WRONLY|os.O_CREATE, 0666)
+			var f *os.File
+			if arg == ">" {
+				f, _ = os.OpenFile(args[i+1], os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0666)
+			} else {
+				f, _ = os.OpenFile(args[i+1], os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+			}
 			cmd.Stdout = f
 			commands = append(commands, cmd)
 			cmdInEnd = false
