@@ -78,7 +78,7 @@ func sesh_loop() {
 		if status == 2 {
 			symbol = "\u2715"
 		}
-		fmt.Printf("sesh 🔥  %s %s ", os.Getenv("CWD"), symbol)
+		fmt.Printf("\033[36msesh 🔥  \033[33m%s \033[36m%s \033[m", os.Getenv("CWD"), symbol)
 		//line, _ := reader.ReadString('\n')
 		line, discard, cursorPos, histCounter, shellEditor := "", false, 0, 0, false
 		for {
