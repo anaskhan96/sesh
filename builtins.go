@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,6 +14,7 @@ var builtins = map[string]func([]string) int{
 	//"pwd":  sesh_pwd,
 	//"echo": sesh_echo,
 	"history": sesh_history,
+	"tree":    sesh_tree,
 }
 
 func sesh_exit(args []string) int {
@@ -47,6 +49,44 @@ func sesh_cd(args []string) int {
 		wdSlice := strings.Split(wd, "/")
 		os.Setenv("CWD", wdSlice[len(wdSlice)-1])
 	}
+	return 1
+}
+
+func sesh_tree(args []string) int {
+	var dir string
+	if len(args) == 0 || args[0] == "." {
+		dir, _ = filepath.Abs("")
+	} else if args[0] == ".." {
+		currDir, _ := filepath.Abs("")
+		dir = filepath.Dir(currDir)
+	} else {
+		dir, _ = filepath.Abs(args[0])
+	}
+	if fi, err := os.Stat(dir); err == nil {
+		if fi.Mode().IsDir() {
+			return traverse(dir)
+		}
+		fmt.Printf(ERRFORMAT, "Not a directory")
+		return 2
+	}
+	fmt.Printf(ERRFORMAT, "Invalid path")
+	return 2
+}
+
+func traverse(dir string) int {
+	dashes, _ := "--", filepath.Base(dir)
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		name := filepath.Base(path)
+		// TODO: don't show hidden files and directories in tree
+		/*if (name != "." && name != "..") && name[0] == '.' {
+			return filepath.SkipDir
+		}*/
+		if info.IsDir() {
+			dashes += "--"
+		}
+		fmt.Printf("%s %s\n", dashes, name)
+		return nil
+	})
 	return 1
 }
 
