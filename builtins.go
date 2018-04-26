@@ -74,7 +74,7 @@ func sesh_tree(args []string) int {
 }
 
 func traverse(dir string) int {
-	dashes, _ := "--", filepath.Base(dir)
+	dashes, _ := "|", filepath.Base(dir)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		name := filepath.Base(path)
 		// TODO: don't show hidden files and directories in tree
