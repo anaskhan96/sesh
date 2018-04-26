@@ -173,15 +173,23 @@ func sesh_loop() {
 				args := strings.Fields(line)
 				if len(line) > 1 {
 					arg := args[len(args)-1]
-					files, _ := ioutil.ReadDir(".")
+					pattern, dir := arg, "."
+					if strings.Contains(arg, "/") {
+						pattern, dir = filepath.Base(arg), filepath.Dir(arg)
+					}
+					files, _ := ioutil.ReadDir(dir)
 					matches := make([]string, 0, 10)
 					for _, file := range files {
-						if strings.HasPrefix(file.Name(), arg) {
+						if strings.HasPrefix(file.Name(), pattern) {
 							matches = append(matches, file.Name())
 						}
 					}
 					if len(matches) == 1 {
-						args[len(args)-1] = matches[0]
+						pathToAppend := matches[0]
+						if strings.Contains(arg, "/") {
+							pathToAppend = fmt.Sprintf("%s/%s", dir, matches[0])
+						}
+						args[len(args)-1] = pathToAppend
 						line = strings.Join(args, " ")
 						for cursorPos > 0 {
 							fmt.Printf("\b\033[K")
