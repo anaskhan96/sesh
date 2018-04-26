@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +16,7 @@ var builtins = map[string]func([]string) int{
 	//"echo": sesh_echo,
 	"history": sesh_history,
 	"walk":    sesh_walk,
+	"show":    sesh_show,
 }
 
 func sesh_exit(args []string) int {
@@ -71,6 +73,31 @@ func sesh_walk(args []string) int {
 	}
 	fmt.Printf(ERRFORMAT, "Invalid path")
 	return 2
+}
+
+func sesh_show(args []string) int {
+	prefix := ""
+	if len(args) > 1 {
+		fmt.Printf(ERRFORMAT, "wrong usage of show")
+		return 2
+	} else if len(args) == 1 {
+		prefix = args[0]
+	}
+	dirs := strings.Split(os.Getenv("PATH"), ":")
+	commands := make([]string, 0, 10)
+	for _, dir := range dirs {
+		files, _ := ioutil.ReadDir(dir)
+		for _, file := range files {
+			if strings.HasPrefix(file.Name(), prefix) {
+				commands = append(commands, file.Name())
+			}
+		}
+	}
+	for _, command := range commands {
+		fmt.Printf("%s\t", command)
+	}
+	fmt.Println()
+	return 1
 }
 
 func traverse(dir string) int {
