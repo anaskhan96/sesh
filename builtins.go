@@ -14,7 +14,7 @@ var builtins = map[string]func([]string) int{
 	//"pwd":  sesh_pwd,
 	//"echo": sesh_echo,
 	"history": sesh_history,
-	"tree":    sesh_tree,
+	"walk":    sesh_walk,
 }
 
 func sesh_exit(args []string) int {
@@ -52,7 +52,7 @@ func sesh_cd(args []string) int {
 	return 1
 }
 
-func sesh_tree(args []string) int {
+func sesh_walk(args []string) int {
 	var dir string
 	if len(args) == 0 || args[0] == "." {
 		dir, _ = filepath.Abs("")
