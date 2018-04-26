@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -228,8 +227,10 @@ func sesh_loop() {
 		HISTLINE, status = line, 1
 		line = strings.Replace(line, "~", os.Getenv("HOME"), -1)
 		args, ok := parseLine(line)
-		if ok {
+		if ok && args != nil {
 			status = execute(args)
+		} else {
+			status = 2
 		}
 		if status == 1 {
 			/* Store line in history */
@@ -251,19 +252,29 @@ func parseLine(line string) ([]string, bool) {
 		}
 	}
 	if args[0] == "alias" {
+		if len(args) == 1 {
+			fmt.Printf(ERRFORMAT, "arguments needed for alias")
+			return nil, false
+		}
 		for _, i := range args[1:] {
 			aliasArgs := strings.Split(i, "=")
 			if len(aliasArgs) != 2 {
-				log.Fatalf(ERRFORMAT, "wrong format of alias")
+				fmt.Printf(ERRFORMAT, "wrong format of alias")
+				return nil, false
 			}
 			aliases[aliasArgs[0]] = aliasArgs[1]
 		}
 		return args, false
 	}
 	if args[0] == "export" {
+		if len(args) == 1 {
+			fmt.Printf(ERRFORMAT, "argument needed for export")
+			return nil, false
+		}
 		exportArgs := strings.Split(args[1], "=")
 		if len(exportArgs) != 2 {
-			log.Fatalf(ERRFORMAT, "wrong format of export")
+			fmt.Printf(ERRFORMAT, "wrong format of export")
+			return nil, false
 		}
 		os.Setenv(exportArgs[0], exportArgs[1])
 		return args, false

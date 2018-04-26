@@ -14,12 +14,18 @@ func launch(args []string) int {
 	}
 	start, cmdInEnd := 0, true
 	for i, arg := range args {
+		if i == len(args)-1 && cmdInEnd {
+			if len(commands) == 0 {
+				return launchSimpleCommand(args, isBackground)
+			}
+			cmd := exec.Command(args[start], args[start+1:]...)
+			commands = append(commands, cmd)
+		}
 		if arg == "|" {
 			cmd := exec.Command(args[start], args[start+1:i]...)
 			commands = append(commands, cmd)
 			start = i + 1
-		}
-		if arg == ">" || arg == ">>" {
+		} else if arg == ">" || arg == ">>" {
 			cmd := exec.Command(args[start], args[start+1:i]...)
 			var f *os.File
 			if arg == ">" {
@@ -30,8 +36,7 @@ func launch(args []string) int {
 			cmd.Stdout = f
 			commands = append(commands, cmd)
 			cmdInEnd = false
-		}
-		if arg == "<" {
+		} else if arg == "<" {
 			f, _ := os.Open(args[i+1])
 			if len(commands) > 0 {
 				commands[0].Stdin = f
@@ -41,15 +46,6 @@ func launch(args []string) int {
 				commands = append(commands, cmd)
 			}
 			cmdInEnd = false
-		}
-		if i == len(args)-1 {
-			if cmdInEnd {
-				if len(commands) == 0 {
-					return launchSimpleCommand(args, isBackground)
-				}
-				cmd := exec.Command(args[start], args[start+1:]...)
-				commands = append(commands, cmd)
-			}
 		}
 	}
 	for i := range commands {
