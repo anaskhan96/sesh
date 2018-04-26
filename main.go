@@ -9,6 +9,7 @@ import "C"
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -169,7 +170,28 @@ func sesh_loop() {
 			}
 			// tab was pressed
 			if c == 9 {
-				// TODO
+				args := strings.Fields(line)
+				if len(line) > 1 {
+					arg := args[len(args)-1]
+					files, _ := ioutil.ReadDir(".")
+					matches := make([]string, 0, 10)
+					for _, file := range files {
+						if strings.HasPrefix(file.Name(), arg) {
+							matches = append(matches, file.Name())
+						}
+					}
+					if len(matches) == 1 {
+						args[len(args)-1] = matches[0]
+						line = strings.Join(args, " ")
+						for cursorPos > 0 {
+							fmt.Printf("\b\033[K")
+							cursorPos--
+						}
+						fmt.Printf("%s", line)
+						cursorPos = len(line)
+						continue
+					}
+				}
 				continue
 			}
 			if cursorPos == len(line) {
