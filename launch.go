@@ -20,8 +20,7 @@ func launch(args []string) int {
 			}
 			cmd := exec.Command(args[start], args[start+1:]...)
 			commands = append(commands, cmd)
-		}
-		if arg == "|" {
+		} else if arg == "|" {
 			cmd := exec.Command(args[start], args[start+1:i]...)
 			commands = append(commands, cmd)
 			start = i + 1
