@@ -16,7 +16,7 @@ Apart from this, it has two custom builtins:
 ### Installation
 
 ```bash
-go install github.com/anaskhan96/sesh
+go get -u github.com/anaskhan96/sesh
 ```
 
 It can be run by invoking `sesh` from anywhere in the terminal.
