@@ -79,7 +79,6 @@ func sesh_loop() {
 			symbol = "\u2715"
 		}
 		fmt.Printf("\033[36msesh 🔥  \033[33m%s \033[36m%s \033[m", os.Getenv("CWD"), symbol)
-		//line, _ := reader.ReadString('\n')
 		line, discard, cursorPos, histCounter, shellEditor := "", false, 0, 0, false
 		for {
 			c, _ := reader.ReadByte()
@@ -304,23 +303,6 @@ func parseLine(line string) ([]string, bool) {
 	args = wildcardArgs
 	return args, true
 }
-
-/*func launch(args []string) int {
-	// Spawning and executing a process
-	cmd := exec.Command(args[0], args[1:]...)
-	// Setting stdin, stdout, and stderr
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = nil // making sure the command uses the current process' environment
-	timestamp := time.Now().String()
-	if err := cmd.Run(); err != nil {
-		fmt.Printf(ERRFORMAT, err.Error())
-		return 2
-	}
-	HISTLINE = fmt.Sprintf("%d::%s::%s", cmd.Process.Pid, timestamp, HISTLINE)
-	return 1
-}*/
 
 func execute(args []string) int {
 	if len(args) == 0 {

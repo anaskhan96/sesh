@@ -9,11 +9,9 @@ import (
 )
 
 var builtins = map[string]func([]string) int{
-	"exit": sesh_exit,
-	"cd":   sesh_cd,
-	"help": sesh_help,
-	//"pwd":  sesh_pwd,
-	//"echo": sesh_echo,
+	"exit":    sesh_exit,
+	"cd":      sesh_cd,
+	"help":    sesh_help,
 	"history": sesh_history,
 	"walk":    sesh_walk,
 	"show":    sesh_show,
@@ -116,23 +114,3 @@ func traverse(dir string) int {
 	})
 	return 1
 }
-
-/* Commenting extra builtins for now
-func sesh_pwd(args []string) int {
-	if len(args) != 0 {
-		fmt.Printf(ERRFORMAT, "pwd expects 0 args")
-		return 2
-	}
-	dir, _ := os.Getwd()
-	absPath, _ := filepath.Abs(dir)
-	fmt.Println(absPath)
-	return 1
-}
-
-func sesh_echo(args []string) int {
-	for _, i := range args {
-		fmt.Printf("%s ", i)
-	}
-	fmt.Printf("\n")
-	return 1
-}*/
