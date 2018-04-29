@@ -1,5 +1,7 @@
 # sesh
 
+![](https://raw.githubusercontent.com/anaskhan96/sesh/master/preview.png?token=AWKfRu3IiZ6pI7l5w1BkShc5PbCrnqsNks5a7ub7wA%3D%3D)
+
 `sesh` is a simple (read basic), elegant shell written in Go. Built as a school project for the course _Unix Systems Programming_, it supports the following:
 + Aliasing
 + Piping and I/O redirection
