@@ -2,7 +2,7 @@
 
 ![](https://raw.githubusercontent.com/anaskhan96/sesh/master/preview.png?token=AWKfRu3IiZ6pI7l5w1BkShc5PbCrnqsNks5a7ub7wA%3D%3D)
 
-`sesh` is a simple (read basic), elegant shell written in Go. Built as a school project for the course _Unix Systems Programming_, it supports the following:
+`sesh` is a simple (read basic), elegant shell written in Go. It supports the following:
 + Aliasing
 + Piping and I/O redirection
 + Aliasing
@@ -20,3 +20,7 @@ go get -u github.com/anaskhan96/sesh
 ```
 
 It can be run by invoking `sesh` from anywhere in the terminal.
+
+---
+
+This project was built under the course *Unix Systems Programming* in *PES University*.
