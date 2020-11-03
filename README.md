@@ -23,4 +23,4 @@ It can be run by invoking `sesh` from anywhere in the terminal.
 
 ---
 
-This project was built under the course *Unix Systems Programming* in *PES University*.
+This project was built under the course *Unix Systems Programming* at *PES University*.
