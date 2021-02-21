@@ -5,7 +5,6 @@
 `sesh` is a simple (read basic), elegant shell written in Go. It supports the following:
 + Aliasing
 + Piping and I/O redirection
-+ Aliasing
 + Arrow keys up and down for history
 + Tab autocompletion
 
